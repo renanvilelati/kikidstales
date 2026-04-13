@@ -1,13 +1,118 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../prisma/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum ROLE {
+  ADMIN
+  EMPLOYEE
+}
+
+model User {
+  id    String @id @default(uuid())
+  name  String
+  email String @unique
+  role  ROLE   @default(EMPLOYEE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum AGE_RANGE {
+  AGE_3_4
+  AGE_5_6
+  AGE_7_8
+}
+
+enum STORY_THEME {
+  FRIENDSHIP
+  HONESTY
+  COURAGE
+  SHARING
+  EMPATHY
+  RESPECT
+  BEDTIME
+  FEAR
+  SCHOOL
+}
+
+model Story {
+  id          String      @id @default(uuid())
+  title       String
+  slug        String      @unique
+  coverImage  String?
+  content     String
+  readingTime Int
+  ageRange    AGE_RANGE
+  theme       STORY_THEME
+  moral       String?
+  published   Boolean     @default(false)
+
+  questions    StoryQuestion[]
+  coloringPage ColoringPage?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stories")
+}
+
+enum QUESTION_TYPE {
+  COMPREHENSION
+  EMOTION
+  CREATIVITY
+}
+
+model StoryQuestion {
+  id      String        @id @default(uuid())
+  content String
+  type    QUESTION_TYPE
+
+  storyId String
+  story   Story  @relation(fields: [storyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("story_questions")
+}
+
+model ColoringPage {
+  id          String  @id @default(uuid())
+  title       String
+  slug        String  @unique
+  description String?
+
+  storyId String @unique
+  story   Story  @relation(fields: [storyId], references: [id])
+
+  images ColoringImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("coloring_pages")
+}
+
+model ColoringImage {
+  id                    String  @id @default(uuid())
+  title                 String
+  imageUrl              String
+  svgUrl                String?
+  order                 Int     @default(0)
+  supportOnlinePainting Boolean @default(false)
+
+  coloringPageId String
+  coloringPage   ColoringPage @relation(fields: [coloringPageId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("coloring_images")
 }
